@@ -54,7 +54,7 @@
 
         #app-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 800px; /* 稍微加寬以容納總表 */
             background: var(--bg-color);
             border-radius: 25px;
             padding: 20px;
@@ -172,10 +172,45 @@
             overflow-x: auto; flex-grow: 1;
         }
 
+        /* ------------------------------------------- */
+        /* 表格樣式 (一般與總表) */
+        /* ------------------------------------------- */
         table { width: 100%; border-collapse: collapse; min-width: 300px; }
         th { text-align: left; color: var(--accent-color); padding: 12px 8px; font-size: 0.95rem; border-bottom: 2px solid #cbd5e0; white-space: nowrap; }
         td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.95rem; vertical-align: top; }
         
+        /* 總表專用樣式 */
+        .master-table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px;
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1);
+        }
+        .master-table {
+            width: 100%;
+            min-width: 800px; /* 強制寬度以允許滑動 */
+            border: 1px solid #ccc;
+        }
+        .master-table th, .master-table td {
+            border: 1px solid #ccc;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            color: #333;
+        }
+        .master-table th {
+            background-color: #f0f4f8;
+            font-weight: bold;
+        }
+        .dot {
+            height: 12px;
+            width: 12px;
+            background-color: #000;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
         .tag-no { color: var(--accent-color); font-family: monospace; font-weight: 700; display: block; margin-top: 4px; font-size: 0.9rem; }
         .value { color: var(--trip-color); font-weight: 700; display: block; margin-top: 4px; }
         .value-auto { color: var(--auto-color); font-weight: 700; display: block; margin-top: 4px; }
@@ -394,6 +429,18 @@
                         <div class="btn-text">搜尋資料 (Search)</div>
                         <div class="arrow">➜</div>
                      </button>`;
+
+            // 連鎖總表按鈕 (新增)
+            html += `<button class="btn" onclick="renderMasterTable()">
+                        <div class="btn-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#8B4513" stroke="#5c2e0c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </div>
+                        <div class="btn-text">連鎖總表 (Master Table)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
             
             // 設備分類按鈕圖示定義 (SVG) - 增加顏色屬性
             const catIcons = {
@@ -425,6 +472,163 @@
                          </button>`;
             });
             html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
+        // 連鎖總表渲染 (複製提供的圖片內容)
+        function renderMasterTable() {
+            let html = `<button class="btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-highlight);">MCC/C-2002/F-2001/F-2002/APH 連鎖跳車表</h2>`;
+            
+            // 使用 CSS Grid 或 Table 模擬圖片
+            html += `
+            <div class="master-table-container">
+                <table class="master-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">跳車原因 / 結果</th>
+                            <th colspan="2">F-2001</th>
+                            <th rowspan="2">C-2005<br>S/D</th>
+                            <th colspan="2">APH (Air Preheat)</th>
+                            <th colspan="2">F-2002</th>
+                            <th rowspan="2">P-2001<br>S/D</th>
+                        </tr>
+                        <tr>
+                            <th>Close<br>XV-084<br>(F.G)</th>
+                            <th>Open<br>FV-082<br>(Air)</th>
+                            <th>Open<br>XV-941<br>(自然通風)</th>
+                            <th>Open<br>XV-942<br>(空氣預熱)</th>
+                            <th>Close<br>XV-089<br>(F.G)</th>
+                            <th>Open<br>FV-086<br>(Air)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>MCC (480V) 停電 (delay 3s)</td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                        <tr>
+                            <td>C-2002 (詳細因素見表)</td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" style="background:#eee; font-weight:bold;">F-2001 跳車因素</td>
+                        </tr>
+                        <tr>
+                            <td>手動跳車按鈕 HS-995 A/B</td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                        <tr>
+                            <td>F.G 低低壓力 PSLL-713</td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                        <tr>
+                            <td>Air 低低流量 FSLL-081</td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" style="background:#eee; font-weight:bold;">F-2002 跳車因素</td>
+                        </tr>
+                        <tr>
+                            <td>手動跳車按鈕 HS-988 A/B</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>F.G 低低壓力 PSLL-715</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Air 低低流量 FSLL-085</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" style="background:#eee; font-weight:bold;">C-2005 跳車因素</td>
+                        </tr>
+                        <tr>
+                            <td>C-2005 進出口 PDSLL-733</td>
+                            <td></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>XV-941 開啟後 5秒未全開</td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                            <td><div class="dot"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size:0.8rem; color:#666; margin-top:10px;">
+                    * 註: ⚫ 代表連鎖動作觸發
+                </div>
+            </div>`;
+
             appDiv.innerHTML = html;
         }
 
@@ -632,7 +836,6 @@
                     // 處理點擊搜尋結果後的行為
                     let clickAction = "";
                     if (m.cat === 'Pump') {
-                        // 判斷 Pump 類型以決定返回路徑
                         let pType = (["P-2001A", "P-2001B", "P-2002A", "P-2002B", "P-2003A", "P-2003B", "P-2004A", "P-2004B"].includes(m.equip)) ? 'High' : 'General';
                         clickAction = `renderDetails('${m.cat}', '${m.equip}', '${pType}')`;
                     } else if (m.type === 'General') {

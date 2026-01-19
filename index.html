@@ -22,7 +22,7 @@
             --trip-color: #e53e3e;
             --mech-color: #d69e2e;
             --proc-color: #3182ce;
-            /* 返回按鈕專用色 */
+            --auto-color: #38a169; /* Auto Start 專用綠色 */
             --back-btn-bg: linear-gradient(145deg, #ffffff, #e6e6e6);
             --back-btn-text: #555;
         }
@@ -104,9 +104,7 @@
             transform: scale(0.98);
         }
 
-        /* ------------------------------------------- */
-        /* 立體返回鍵樣式 (NEW) */
-        /* ------------------------------------------- */
+        /* 立體返回鍵 */
         .btn-back {
             margin-bottom: 15px;
             padding: 12px 20px;
@@ -114,23 +112,18 @@
             display: block;
             width: 100%;
             box-sizing: border-box;
-            
-            /* 立體風格設定 */
             background: var(--back-btn-bg);
             color: var(--back-btn-text);
             font-weight: bold;
             font-size: 1rem;
             border: 1px solid #d1d1d1;
-            border-radius: 50px; /* 圓角更明顯 */
-            
-            /* 立體陰影 */
+            border-radius: 50px;
             box-shadow: 5px 5px 10px var(--shadow-dark), 
                        -5px -5px 10px var(--shadow-light);
             transition: all 0.1s ease;
         }
 
         .btn-back:active {
-            /* 按下時的凹陷效果 */
             box-shadow: inset 3px 3px 6px var(--shadow-dark), 
                         inset -3px -3px 6px var(--shadow-light);
             transform: translateY(2px);
@@ -162,8 +155,10 @@
         table { width: 100%; border-collapse: collapse; min-width: 300px; }
         th { text-align: left; color: var(--accent-color); padding: 12px 8px; font-size: 0.95rem; border-bottom: 2px solid #cbd5e0; white-space: nowrap; }
         td { padding: 12px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.95rem; vertical-align: top; }
+        
         .tag-no { color: var(--accent-color); font-family: monospace; font-weight: 700; display: block; margin-top: 4px; font-size: 0.9rem; }
         .value { color: var(--trip-color); font-weight: 700; display: block; margin-top: 4px; }
+        .value-auto { color: var(--auto-color); font-weight: 700; display: block; margin-top: 4px; }
         
         .search-result-item {
             background: var(--bg-color); margin-bottom: 15px; padding: 15px;
@@ -317,17 +312,35 @@
                 ]}
             },
             "Pump": {
-                "P-2001A/B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-798(A)/800(B)", "value": "0.98/0.7 kg/cm²", "logic": "3選2" },
-                    { "reason": "馬達線圈高溫度", "tag": "TSHH-464/466", "value": "160°C", "logic": "B/D/F" }
+                "P-2001A": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-798 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-797", "value": "1.12 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-464 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
-                "P-2002A/B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-802(A)/804(B)", "value": "0.98/0.84 kg/cm²", "logic": "3選2" },
-                    { "reason": "馬達線圈高溫度", "tag": "TSHH-468/470", "value": "160°C", "logic": "B/D/F" }
+                "P-2001B": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-800 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-799", "value": "0.84 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-466 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
-                "P-2003A/B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-806(A)/808(B)", "value": "0.77/0.7 kg/cm²", "logic": "3選2" },
-                    { "reason": "馬達線圈高溫度", "tag": "TSHH-472/474", "value": "160°C", "logic": "" }
+                "P-2002A": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-802 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-801", "value": "1.12 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-468 B/D/F", "value": "160°C", "logic": "跳車" }
+                ]},
+                "P-2002B": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-804 A/B/C", "value": "0.84 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-803", "value": "0.98 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-470 B/D/F", "value": "160°C", "logic": "跳車" }
+                ]},
+                "P-2003A": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-806 A/B/C", "value": "0.77 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-805", "value": "0.91 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-472 B/D/F", "value": "160°C", "logic": "跳車" }
+                ]},
+                "P-2003B": { "hasSub": false, "list": [
+                    { "reason": "滑油低低壓力", "tag": "PSLL-808 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
+                    { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-807", "value": "0.84 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "馬達線圈高溫度", "tag": "TSHH-474 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2016A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-711", "value": "3.2 kg/cm²", "logic": "Auto Start" } ]},
                 "P-2017A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-709", "value": "5 kg/cm²", "logic": "Auto Start" } ]},
@@ -425,7 +438,7 @@
             html += `<table>
                         <thead>
                             <tr>
-                                <th width="45%">跳車因素</th>
+                                <th width="45%">因素</th>
                                 <th width="35%">位號 / 設定</th>
                                 <th width="20%">邏輯/備註</th>
                             </tr>
@@ -433,11 +446,14 @@
                         <tbody>`;
             
             dataList.forEach(function(item) {
+                // Auto Start 數值顯示為綠色
+                let valClass = item.isAuto ? 'value-auto' : 'value';
+                
                 html += `<tr>
                             <td>${item.reason}</td>
                             <td>
                                 <span class="tag-no">${item.tag}</span>
-                                <span class="value">${item.value}</span>
+                                <span class="${valClass}">${item.value}</span>
                             </td>
                             <td style="font-size:0.9rem; color:#718096;">${item.logic}</td>
                          </tr>`;

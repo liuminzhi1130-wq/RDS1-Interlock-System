@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RDS 連鎖邏輯查詢系統</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/9.4.3/mermaid.min.js"></script>
     <style>
         :root {
             --bg-color: #e0e5ec;
@@ -171,16 +171,21 @@
     </div>
 
     <script>
-        mermaid.initialize({ 
-            startOnLoad: true, 
-            theme: 'base', 
-            securityLevel: 'loose',
-            flowchart: { curve: 'basis', htmlLabels: true, useMaxWidth: false },
-            themeVariables: { primaryColor: '#e0e5ec', primaryTextColor: '#2d3748', lineColor: '#667eea', fontSize: '20px', fontFamily: 'arial' } 
-        });
+        // 初始化 Mermaid，加上容錯機制
+        try {
+            mermaid.initialize({ 
+                startOnLoad: true, 
+                theme: 'base', 
+                securityLevel: 'loose',
+                flowchart: { curve: 'basis', htmlLabels: true, useMaxWidth: false },
+                themeVariables: { primaryColor: '#e0e5ec', primaryTextColor: '#2d3748', lineColor: '#667eea', fontSize: '20px', fontFamily: 'arial' } 
+            });
+        } catch (e) {
+            console.error("Mermaid init failed:", e);
+        }
 
         // ==========================================
-        // 資料庫：區分 Process (製程) 與 Mechanical (機械)
+        // 資料庫：包含您指定的所有修正
         // ==========================================
         const db = {
             "Compressor": {
@@ -264,7 +269,7 @@
                 "C-2003A": {
                     "hasSub": true,
                     "Process": [
-                        { reason: "D-2014 高高液位", tag: "LSHH-479 A/B/C", value: "-", logic: "3選2 (Common)" },
+                        [cite_start]{ reason: "D-2014 高高液位", tag: "LSHH-479 A/B/C", value: "-", logic: "3選2 (Common) [cite: 25]" },
                         { reason: "第一級出口高高溫度", tag: "TSHH-408", value: "140°C", logic: "" },
                         { reason: "第二級出口高高溫度", tag: "TSHH-419", value: "99°C", logic: "" },
                         { reason: "進口低低壓力", tag: "PSLL-654 A/B/C", value: "0.14 kg/cm²", logic: "3選2" },
@@ -280,7 +285,7 @@
                 "C-2003B": {
                     "hasSub": true,
                     "Process": [
-                        { reason: "D-2014 高高液位", tag: "LSHH-479 A/B/C", value: "-", logic: "3選2 (Common)" },
+                        [cite_start]{ reason: "D-2014 高高液位", tag: "LSHH-479 A/B/C", value: "-", logic: "3選2 (Common) [cite: 25]" },
                         { reason: "第一級出口高高溫度", tag: "TSHH-409", value: "140°C", logic: "" },
                         { reason: "第二級出口高高溫度", tag: "TSHH-420", value: "99°C", logic: "" },
                         { reason: "進口低低壓力", tag: "PSLL-656 A/B/C", value: "0.14 kg/cm²", logic: "3選2" },
@@ -314,7 +319,6 @@
                 ]}
             },
             "Pump": {
-                // Pump 類別因為跳車點少，保持單頁顯示，但在表格內區分
                 "P-2001A/B": { "hasSub": false, "list": [
                     { reason: "滑油低低壓力", tag: "PSLL-798(A)/800(B)", value: "0.98/0.7 kg/cm²", logic: "3選2" },
                     { reason: "馬達線圈高溫度", tag: "TSHH-464/466", value: "160°C", logic: "B/D/F" }
@@ -362,7 +366,6 @@
             appDiv.innerHTML = html;
         }
 
-        // 設備分類列表
         function renderCategory(category) {
             let html = `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
             html += `<h2 style="text-align:center; color:var(--text-highlight);">${category}</h2>`;
@@ -377,20 +380,15 @@
             appDiv.innerHTML = html;
         }
 
-        // 設備詳情處理（判斷是否需要分流）
         function renderDetails(category, equipment) {
             const equipData = db[category][equipment];
-            
-            // 如果該設備有區分 Process/Mechanical 子選單
             if (equipData.hasSub) {
                 renderSubSelection(category, equipment);
             } else {
-                // 沒有子選單，直接顯示列表
                 renderTable(category, equipment, equipData.list, null);
             }
         }
 
-        // 渲染子選單 (製程 vs 機械)
         function renderSubSelection(category, equipment) {
             let html = `<button class="btn btn-back" onclick="renderCategory('${category}')"> ← 返回 ${category} </button>`;
             html += `<h2 style="text-align:center; color:var(--text-highlight);">${equipment} 跳車類型選擇</h2>`;
@@ -412,31 +410,18 @@
             appDiv.innerHTML = html;
         }
 
-        // 渲染最終表格 (支援子類型)
         function renderSubTable(category, equipment, type) {
             const data = db[category][equipment][type];
             renderTable(category, equipment, data, type);
         }
 
         function renderTable(category, equipment, dataList, subType) {
-            // 決定返回按鈕的目標
-            let backAction = "";
-            let title = equipment;
-            
-            if (subType) {
-                // 如果是子頁面，返回到選擇頁
-                backAction = `renderSubSelection('${category}', '${equipment}')`;
-                title += ` - ${subType === 'Process' ? '製程連鎖' : '機械因素'}`;
-            } else {
-                // 如果是單頁面，返回到設備列表
-                backAction = `renderCategory('${category}')`;
-            }
+            let backAction = subType ? `renderSubSelection('${category}', '${equipment}')` : `renderCategory('${category}')`;
+            let title = equipment + (subType ? ` - ${subType === 'Process' ? '製程連鎖' : '機械因素'}` : '');
 
             let html = `<button class="btn btn-back" onclick="${backAction}"> ← 返回上一頁 </button>`;
             html += `<div class="detail-card">`;
-            html += `<h3 style="color:var(--text-highlight); border-bottom: 2px solid var(--accent-color); padding-bottom:15px; margin-top:0;">
-                        ${title}
-                     </h3>`;
+            html += `<h3 style="color:var(--text-highlight); border-bottom: 2px solid var(--accent-color); padding-bottom:15px; margin-top:0;">${title}</h3>`;
             html += `<table>
                         <thead>
                             <tr>
@@ -461,7 +446,6 @@
             appDiv.innerHTML = html;
         }
 
-        // Master Map (保持邏輯不變，修正版)
         function renderMasterMap() {
             currentZoom = 1.3;
             let html = `<div class="map-container-wrapper">`;
@@ -492,17 +476,19 @@
             </div>`;
             html += `</div>`;
             appDiv.innerHTML = html;
-            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            setTimeout(() => {
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+            }, 100);
         }
 
         function zoomMap(delta) {
             currentZoom += delta;
             if (currentZoom < 0.5) currentZoom = 0.5;
             if (currentZoom > 3) currentZoom = 3;
-            document.getElementById('mermaid-graph').style.transform = `scale(${currentZoom})`;
+            const graph = document.getElementById('mermaid-graph');
+            if(graph) graph.style.transform = `scale(${currentZoom})`;
         }
 
-        // 搜尋功能
         function renderSearchPage() {
             let html = `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
             html += `<input type="text" id="searchInput" class="search-box" placeholder="輸入位號、設備名或數值..." onkeyup="performSearch()">`;
@@ -520,7 +506,6 @@
             Object.keys(db).forEach(cat => {
                 Object.keys(db[cat]).forEach(equip => {
                     const obj = db[cat][equip];
-                    // 處理有子選單的情況
                     if (obj.hasSub) {
                         ['Process', 'Mechanical'].forEach(subType => {
                             obj[subType].forEach(item => {
@@ -530,7 +515,6 @@
                             });
                         });
                     } else {
-                        // 處理無子選單的情況
                         obj.list.forEach(item => {
                             if ((item.reason && item.reason.includes(query)) || (item.tag && item.tag.includes(query)) || (item.value && item.value.includes(query)) || equip.includes(query)) {
                                 matches.push({ equip: equip, cat: cat, type: 'General', item: item });
@@ -544,7 +528,7 @@
                 resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">查無資料</div>';
             } else {
                 let html = '';
-                matches.slice(0, 50).forEach(m => { // 限制顯示數量優化效能
+                matches.slice(0, 50).forEach(m => { 
                     let typeLabel = m.type === 'Process' ? '🏭 製程' : (m.type === 'Mechanical' ? '🛠️ 機械' : '一般');
                     let clickAction = m.type === 'General' ? `renderDetails('${m.cat}', '${m.equip}')` : `renderSubTable('${m.cat}', '${m.equip}', '${m.type}')`;
                     
@@ -562,7 +546,8 @@
             }
         }
 
-        renderHome();
+        // 確保 DOM 載入後執行
+        window.addEventListener('load', renderHome);
     </script>
 </body>
 </html>

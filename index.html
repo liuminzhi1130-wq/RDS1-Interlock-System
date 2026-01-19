@@ -139,7 +139,6 @@
             justify-content: center;
         }
         
-        /* SVG 圖示基本設定 */
         .btn-icon svg {
             width: 36px;
             height: 36px;
@@ -358,6 +357,12 @@
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-807", "value": "0.84 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
                     { "reason": "滑油低低壓力", "tag": "PSLL-808 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-474 B/D/F", "value": "160°C", "logic": "跳車" }
+                ]},
+                "P-2004A": { "hasSub": false, "list": [
+                    { "reason": "滑油低壓力 (啟動後 Delay 10 sec)", "tag": "PSL-854", "value": "3 kg/cm²", "logic": "S/D" }
+                ]},
+                "P-2004B": { "hasSub": false, "list": [
+                    { "reason": "滑油低壓力 (啟動後 Delay 10 sec)", "tag": "PSL-855", "value": "3 kg/cm²", "logic": "S/D" }
                 ]},
                 "P-2016A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-711", "value": "3.2 kg/cm²", "logic": "Auto Start" } ]},
                 "P-2017A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-709", "value": "5 kg/cm²", "logic": "Auto Start" } ]},

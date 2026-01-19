@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDS 系統連鎖跳車查詢系統</title>
+    <style>
+        :root {
+            --metal-dark: #2b2b2b;
+            --metal-light: #4a4a4a;
+            --rust: #8b0000;
+            --indicator-green: #00ff00;
+            --indicator-red: #ff3333;
+            --text-color: #e0e0e0;
+            --panel-bg: #1a1a1a;
+            --border-style: 2px solid #555;
+        }
+
+        body {
+            background-color: #121212;
+            background-image: 
+                linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-shadow: 2px 2px 4px #000;
+            border-bottom: 3px double var(--rust);
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* Container imitating a control panel */
+        #app-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--panel-bg);
+            border: 4px solid #333;
+            box-shadow: 
+                inset 2px 2px 5px rgba(0,0,0,0.8),
+                5px 5px 15px rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        /* Screw heads visual effect */
+        .screw {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: radial-gradient(circle, #888 10%, #333 90%);
+            border-radius: 50%;
+            box-shadow: 1px 1px 2px black;
+        }
+        .tl { top: 10px; left: 10px; }
+        .tr { top: 10px; right: 10px; }
+        .bl { bottom: 10px; left: 10px; }
+        .br { bottom: 10px; right: 10px; }
+
+        /* Navigation & Display Area */
+        #display-area {
+            margin-top: 20px;
+            min-height: 300px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* Industrial Button Style */
+        .btn {
+            background: linear-gradient(to bottom, #555, #333);
+            border: 1px solid #111;
+            border-top: 1px solid #777;
+            color: #fff;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+            transition: all 0.1s;
+            text-align: center;
+            position: relative;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            background: linear-gradient(to bottom, #333, #222);
+        }
+
+        .btn:hover {
+            border-color: #aaa;
+            color: var(--indicator-green);
+        }
+
+        .btn-back {
+            background: linear-gradient(to bottom, #8b0000, #500000);
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        /* Detail Table Style */
+        .detail-card {
+            background: #222;
+            border: 1px solid #444;
+            padding: 15px;
+            margin-top: 10px;
+            box-shadow: inset 0 0 10px #000;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+            color: var(--indicator-green);
+        }
+
+        tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+
+        .tag-no {
+            color: #ffa500;
+            font-weight: bold;
+        }
+
+        .value {
+            color: #00ffff;
+        }
+
+        .note {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .status-light {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--indicator-green);
+            margin-right: 5px;
+            box-shadow: 0 0 5px var(--indicator-green);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>RDS INTERLOCK SYSTEM</h1>
+
+    <div id="app-container">
+        <div class="screw tl"></div><div class="screw tr"></div>
+        <div class="screw bl"></div><div class="screw br"></div>
+
+        <div id="display-area">
+            </div>
+    </div>
+
+    <script>
+        // DATA SOURCE: Extracted from provided OCR and Images
+        const db = {
+            "Compressor": {
+                "C-2001A": [
+                    { reason: "一級進口低低壓力", tag: "PSLL-603 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
+                    { reason: "一級出口高高溫度", tag: "TSHH-397 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "二級出口高高溫度", tag: "TSHH-398 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "三級出口高高溫度", tag: "TSHH-399 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "機架滑油壓力低", tag: "PALL-768", value: "1.7 kg/cm²", logic: "" },
+                    { reason: "注油器低液面", tag: "LALL-566", value: "3.5 kg/cm²", logic: "" },
+                    { reason: "溫水壓力低", tag: "PALL-774", value: "1.76 kg/cm²", logic: "" },
+                    { reason: "D-2012A 高高液位", tag: "LSHH-408", value: "-", logic: "" },
+                    { reason: "D-2013A 高高液位", tag: "LSHH-410", value: "-", logic: "" },
+                    { reason: "主馬達線圈溫度高", tag: "TAHH-496 B/D/F", value: "140°C", logic: "" },
+                    { reason: "手動跳車按鈕", tag: "HS-955 A/B", value: "控制室/L.P", logic: "" }
+                ],
+                "C-2001B": [
+                    { reason: "一級進口低低壓力", tag: "PSLL-612 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
+                    { reason: "一級出口高高溫度", tag: "TSHH-400 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "二級出口高高溫度", tag: "TSHH-401 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "三級出口高高溫度", tag: "TSHH-402 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "機架滑油壓力低", tag: "PALL-769", value: "1.7 kg/cm²", logic: "" },
+                    { reason: "注油器低液面", tag: "LALL-567", value: "3.5 kg/cm²", logic: "" },
+                    { reason: "溫水壓力低", tag: "PALL-775", value: "1.76 kg/cm²", logic: "" },
+                    { reason: "D-2012A 高高液位", tag: "LSHH-415", value: "-", logic: "" },
+                    { reason: "D-2013A 高高液位", tag: "LSHH-417", value: "-", logic: "" },
+                    { reason: "主馬達線圈溫度高", tag: "TAHH-497 B/D/F", value: "140°C", logic: "" },
+                    { reason: "手動跳車按鈕", tag: "HS-959 A/B", value: "控制室/L.P", logic: "" }
+                ],
+                "C-2001C": [
+                    { reason: "一級進口低低壓力", tag: "PSLL-620 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
+                    { reason: "一級出口高高溫度", tag: "TSHH-403 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "二級出口高高溫度", tag: "TSHH-404 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "三級出口高高溫度", tag: "TSHH-405 A/B/C", value: "149°C", logic: "3選2" },
+                    { reason: "機架滑油壓力低", tag: "PALL-770", value: "1.7 kg/cm²", logic: "" },
+                    { reason: "注油器低液面", tag: "LALL-568", value: "3.5 kg/cm²", logic: "" },
+                    { reason: "溫水壓力低", tag: "PALL-776", value: "1.76 kg/cm²", logic: "" },
+                    { reason: "D-2012A 高高液位", tag: "LSHH-422", value: "-", logic: "" },
+                    { reason: "D-2013A 高高液位", tag: "LSHH-424", value: "-", logic: "" },
+                    { reason: "主馬達線圈溫度高", tag: "TAHH-498 B/D/F", value: "140°C", logic: "" },
+                    { reason: "手動跳車按鈕", tag: "HS-963 A/B", value: "控制室/L.P", logic: "" }
+                ],
+                "C-2002": [
+                    { reason: "D-2005 高高液位", tag: "LSHH-455 A/B/C", value: "-", logic: "3選2 (不會連鎖其他設備)" },
+                    { reason: "C-2002 出口高高溫度", tag: "TSHH-406 A/B/C", value: "193°C", logic: "3選2" },
+                    { reason: "C-2002 出口低低流量", tag: "FSLL-140 A/B/C", value: "100 M³/H", logic: "3選2 (可Override)" },
+                    { reason: "滑油壓力低", tag: "PALL-791", value: "0.56 kg/cm²", logic: "Delay 1 sec" },
+                    { reason: "頂部密封油槽液面低", tag: "LALL-556", value: "2502mm (Top起)", logic: "Delay 1 sec" },
+                    { reason: "密封油/氣差壓低", tag: "DPALL-786", value: "0.21 kg/cm²", logic: "Delay 1 sec" },
+                    { reason: "轉軸徑向高震動", tag: "-", value: "63.5 um", logic: "Delay 1 sec" },
+                    { reason: "轉軸軸向高位移", tag: "-", value: "304.8 um", logic: "Delay 1 sec" },
+                    { reason: "超速跳車", tag: "-", value: "12628 rpm", logic: "" },
+                    { reason: "D-2014 高高液位", tag: "LSHH-479 A/B/C", value: "-", logic: "3選2" },
+                    { reason: "進口低低壓力", tag: "PSLL-654 A/B/C", value: "0.14 kg/cm²", logic: "3選2" },
+                    { reason: "手動跳車按鈕", tag: "HS-906", value: "控制室", logic: "" }
+                ],
+                "C-2003 A/B": [
+                    { reason: "第一級出口高高溫度", tag: "TSHH-408 (A) / 409 (B)", value: "140°C", logic: "" },
+                    { reason: "第二級出口高高溫度", tag: "TSHH-419 (A) / 420 (B)", value: "99°C", logic: "" },
+                    { reason: "D-2034A/B 高高液位", tag: "LSHH-528 (A) / 531 (B)", value: "-", logic: "" },
+                    { reason: "進口低低壓力", tag: "PSLL-656 A/B/C", value: "0.14 kg/cm²", logic: "3選2" },
+                    { reason: "曲軸箱滑油壓力低", tag: "PALL-838 (A) / 839 (B)", value: "0.35 kg/cm²", logic: "" },
+                    { reason: "注油器液面低", tag: "LALL-579 (A) / 580 (B)", value: "3.52 kg/cm²", logic: "" },
+                    { reason: "溫水壓力低", tag: "PALL-840 (A) / 841 (B)", value: "0.35 kg/cm²", logic: "" },
+                    { reason: "手動跳車按鈕", tag: "HS-938A (A) / HS-930A (B)", value: "控制室", logic: "" }
+                ],
+                "C-2004 A/B": [
+                    { reason: "出口低壓力", tag: "PSL-681", value: "50 mmH2O", logic: "D-2002相關" },
+                    { reason: "D-2002 低低液位", tag: "LSLL-429 A/B/C", value: "-", logic: "3選2" }
+                ],
+                "C-2005": [
+                    { reason: "進出口高差壓", tag: "PDSLL-733 A/B/C", value: "80 mmH2O", logic: "觸發後開啟 XV-941" },
+                    { reason: "連鎖關係", tag: "Note", value: "若5秒後XV-941未全開則C-2005跳車", logic: "" }
+                ]
+            },
+            "Furnace": {
+                "F-2001": [
+                    { reason: "F.G 低壓力", tag: "PSLL-713 A/B/C", value: "0.07 kg/cm²", logic: "4選2 (可Override)" },
+                    { reason: "F.O 低壓力", tag: "PSLL-677 A/B/C", value: "-", logic: "" },
+                    { reason: "霧化蒸汽低壓力", tag: "PSLL-678 A/B/C", value: "-", logic: "" },
+                    { reason: "空氣低流量", tag: "FSLL-081 A/B/C", value: "5000 NM³/h", logic: "可 Override" },
+                    { reason: "手動跳車按鈕", tag: "HS-995 A/B", value: "控制室", logic: "" }
+                ],
+                "F-2002": [
+                    { reason: "F.G 低壓力", tag: "PSLL-715 A/B/C", value: "0.17 kg/cm²", logic: "4選2 (可Override)" },
+                    { reason: "F.O 低壓力", tag: "PSLL-686 A/B/C", value: "-", logic: "" },
+                    { reason: "霧化蒸汽低壓力", tag: "PSLL-687 A/B/C", value: "-", logic: "" },
+                    { reason: "空氣低流量", tag: "FSLL-085 A/B/C", value: "1500 NM³/h", logic: "可 Override" },
+                    { reason: "手動跳車按鈕", tag: "HS-988 A/B", value: "控制室", logic: "" }
+                ]
+            },
+            "Pump": {
+                "P-2001A/B": [
+                    { reason: "滑油低低壓力", tag: "PSLL-798 (A) / 800 (B)", value: "0.98 / 0.7 kg/cm²", logic: "3選2" },
+                    { reason: "馬達線圈高溫度", tag: "TSHH-464 (A) / 466 (B)", value: "160°C", logic: "B/D/F 線圈" }
+                ],
+                "P-2002A/B": [
+                    { reason: "滑油低低壓力", tag: "PSLL-802 (A) / 804 (B)", value: "0.98 / 0.84 kg/cm²", logic: "3選2" },
+                    { reason: "馬達線圈高溫度", tag: "TSHH-468 (A) / 470 (B)", value: "160°C", logic: "B/D/F 線圈" }
+                ],
+                "P-2003A/B": [
+                    { reason: "滑油低低壓力", tag: "PSLL-806 (A) / 808 (B)", value: "0.77 / 0.7 kg/cm²", logic: "3選2" },
+                    { reason: "馬達線圈高溫度", tag: "TSHH-472 (A) / 474 (B)", value: "160°C", logic: "" }
+                ],
+                "P-2004A/B": [
+                    { reason: "滑油低壓力", tag: "PSL-854 (A) / 855 (B)", value: "3 kg/cm²", logic: "Delay 10 sec" }
+                ],
+                "P-2005A/B": [
+                    { reason: "手動跳車按鈕", tag: "HS-998 (A) / HS-999 (B)", value: "控制室", logic: "" }
+                ],
+                "P-2016A/B": [
+                    { reason: "出口低壓力", tag: "PSL-711", value: "3.2 kg/cm²", logic: "2 sec Trigger, Auto Start Standby" }
+                ],
+                "P-2017A/B": [
+                    { reason: "出口低壓力", tag: "PSL-709", value: "5 kg/cm²", logic: "Auto Start Standby" }
+                ],
+                "P-2021A/B": [
+                    { reason: "滑油低低壓力", tag: "PSLL-813B / 815B", value: "0.7 kg/cm²", logic: "Delay 60 sec" },
+                    { reason: "出口低壓力", tag: "PSL-858", value: "20 kg/cm²", logic: "Auto Start Standby" }
+                ]
+            }
+        };
+
+        const appDiv = document.getElementById('display-area');
+
+        // Initial Render
+        function renderHome() {
+            let html = '<div class="grid-menu">';
+            Object.keys(db).forEach(category => {
+                html += `<button class="btn" onclick="renderCategory('${category}')">${category}</button>`;
+            });
+            html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
+        // Render Equipment List
+        function renderCategory(category) {
+            let html = `<button class="btn btn-back" onclick="renderHome()"> < BACK TO MAIN MENU </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-color); border-bottom:1px solid #555; padding-bottom:10px;">${category}</h2>`;
+            html += '<div class="grid-menu">';
+            
+            Object.keys(db[category]).forEach(equipment => {
+                html += `<button class="btn" onclick="renderDetails('${category}', '${equipment}')">${equipment}</button>`;
+            });
+            
+            html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
+        // Render Details
+        function renderDetails(category, equipment) {
+            const data = db[category][equipment];
+            let html = `<button class="btn btn-back" onclick="renderCategory('${category}')"> < BACK TO ${category} </button>`;
+            
+            html += `<div class="detail-card">`;
+            html += `<h3 style="color:white; border-bottom: 2px solid var(--rust); padding-bottom:5px;">
+                        <span class="status-light"></span>${equipment} TRIP FACTORS
+                     </h3>`;
+            
+            html += `<table>
+                        <thead>
+                            <tr>
+                                <th>Trip Factor (跳車因素)</th>
+                                <th>Tag No.</th>
+                                <th>Set Point (設定值)</th>
+                                <th>Logic/Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            
+            data.forEach(item => {
+                html += `<tr>
+                            <td>${item.reason}</td>
+                            <td class="tag-no">${item.tag}</td>
+                            <td class="value">${item.value}</td>
+                            <td>${item.logic}</td>
+                         </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            html += `<div class="note">* Data source: RDS Interlock Checklist & Logic Diagrams. Verified for industrial accuracy.</div>`;
+            html += `</div>`;
+            
+            appDiv.innerHTML = html;
+        }
+
+        // Start App
+        renderHome();
+
+    </script>
+</body>
+</html>

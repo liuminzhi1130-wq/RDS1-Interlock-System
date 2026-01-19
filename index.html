@@ -32,6 +32,8 @@
             flex-direction: column;
             align-items: center;
             touch-action: manipulation;
+            /* 預設游標 */
+            cursor: default;
         }
 
         h1 {
@@ -57,6 +59,24 @@
             position: relative;
         }
 
+        /* ----------------------------------------------------------- */
+        /* 自定義游標區 (Custom Cursor Logic)                        */
+        /* ----------------------------------------------------------- */
+        
+        /* 1. 懸停時：顯示正常板手 */
+        .btn, .search-result-item, .btn-back {
+            /* Wrench Icon (Normal) */
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'></path></svg>") 0 20, pointer;
+        }
+
+        /* 2. 點擊(Active)時：顯示旋轉後的板手 (敲擊效果) */
+        .btn:active, .search-result-item:active, .btn-back:active {
+            /* Wrench Icon (Rotated/Striking) - 改變 viewBox 或 transform 模擬敲擊 */
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%232d3748' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><g transform='rotate(-45 12 12)'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'></path></g></svg>") 0 20, pointer;
+        }
+
+        /* ----------------------------------------------------------- */
+
         /* 按鈕共用樣式 */
         .btn {
             border: none;
@@ -70,19 +90,20 @@
             margin-bottom: 15px;
             box-shadow: 6px 6px 12px var(--shadow-dark), 
                        -6px -6px 12px var(--shadow-light);
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease; /* 讓按鈕下壓動畫更順暢 */
             width: 100%;
             text-align: left;
             display: flex;
             align-items: center;
-            cursor: pointer;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
+        
+        /* 按鈕下壓效果配合板手敲擊 */
         .btn:active {
             box-shadow: inset 4px 4px 8px var(--shadow-dark), 
                         inset -4px -4px 8px var(--shadow-light);
-            transform: scale(0.98);
+            transform: scale(0.98); /* 微縮效果 */
         }
 
         .btn-icon {
@@ -140,7 +161,7 @@
         .search-result-item {
             background: var(--bg-color); margin-bottom: 15px; padding: 15px;
             border-radius: 15px; box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-            border-left: 6px solid var(--accent-color); cursor: pointer;
+            border-left: 6px solid var(--accent-color); 
         }
         .search-result-item:active { transform: scale(0.98); }
     </style>
@@ -420,66 +441,4 @@
         }
 
         // 搜尋頁面
-        function renderSearchPage() {
-            let html = `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
-            html += `<input type="text" id="searchInput" class="search-box" placeholder="輸入位號、設備名或數值..." onkeyup="performSearch()">`;
-            html += `<div id="searchResults"></div>`;
-            appDiv.innerHTML = html;
-            document.getElementById('searchInput').focus();
-        }
-
-        // 搜尋執行
-        function performSearch() {
-            const query = document.getElementById('searchInput').value.toUpperCase().trim();
-            const resultsDiv = document.getElementById('searchResults');
-            if (query.length < 2) { resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">請輸入至少 2 個字元...</div>'; return; }
-
-            let matches = [];
-            Object.keys(db).forEach(cat => {
-                Object.keys(db[cat]).forEach(equip => {
-                    const obj = db[cat][equip];
-                    if (obj.hasSub) {
-                        ['Process', 'Mechanical'].forEach(subType => {
-                            obj[subType].forEach(item => {
-                                if ((item.reason && item.reason.includes(query)) || (item.tag && item.tag.includes(query)) || (item.value && item.value.includes(query)) || equip.includes(query)) {
-                                    matches.push({ equip: equip, cat: cat, type: subType, item: item });
-                                }
-                            });
-                        });
-                    } else {
-                        obj.list.forEach(item => {
-                            if ((item.reason && item.reason.includes(query)) || (item.tag && item.tag.includes(query)) || (item.value && item.value.includes(query)) || equip.includes(query)) {
-                                matches.push({ equip: equip, cat: cat, type: 'General', item: item });
-                            }
-                        });
-                    }
-                });
-            });
-
-            if (matches.length === 0) {
-                resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">查無資料</div>';
-            } else {
-                let html = '';
-                matches.slice(0, 50).forEach(m => { 
-                    let typeLabel = m.type === 'Process' ? '🏭 製程' : (m.type === 'Mechanical' ? '🛠️ 機械' : '一般');
-                    let clickAction = m.type === 'General' ? `renderDetails('${m.cat}', '${m.equip}')` : `renderSubTable('${m.cat}', '${m.equip}', '${m.type}')`;
-                    
-                    html += `<div class="search-result-item" onclick="${clickAction}">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="font-weight:bold; color:var(--text-highlight); font-size:1.1rem;">${m.equip}</span>
-                                    <span style="font-size:0.8rem; background:#cbd5e0; padding:2px 8px; border-radius:10px;">${typeLabel}</span>
-                                </div>
-                                <div style="margin-top:5px; color:#4a5568;">
-                                    ${m.item.reason} <span class="tag-no">${m.item.tag}</span>
-                                </div>
-                             </div>`;
-                });
-                resultsDiv.innerHTML = html;
-            }
-        }
-
-        // 啟動 App
-        renderHome();
-    </script>
-</body>
-</html>
+        function renderSearch

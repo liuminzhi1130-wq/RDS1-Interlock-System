@@ -187,6 +187,8 @@
                 "C-2001A": {
                     "hasSub": true,
                     "Process": [
+                        [cite_start]{ reason: "D-2010 高高液位", tag: "LSHH-403 A/B/C", value: "-", logic: "3選2 (Common) [cite: 11]" },
+                        [cite_start]{ reason: "允許開車之 9 顆 S.W 開關", tag: "-", value: "啟動後 60s 內有效", logic: "連鎖跳車 [cite: 12]" },
                         { reason: "一級進口低低壓力", tag: "PSLL-603 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
                         { reason: "一級出口高高溫度", tag: "TSHH-397 A/B/C", value: "149°C", logic: "3選2" },
                         { reason: "二級出口高高溫度", tag: "TSHH-398 A/B/C", value: "149°C", logic: "3選2" },
@@ -205,6 +207,8 @@
                 "C-2001B": {
                     "hasSub": true,
                     "Process": [
+                        [cite_start]{ reason: "D-2010 高高液位", tag: "LSHH-403 A/B/C", value: "-", logic: "3選2 (Common) [cite: 11]" },
+                        [cite_start]{ reason: "允許開車之 9 顆 S.W 開關", tag: "-", value: "啟動後 60s 內有效", logic: "連鎖跳車 [cite: 12]" },
                         { reason: "一級進口低低壓力", tag: "PSLL-612 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
                         { reason: "一級出口高高溫度", tag: "TSHH-400 A/B/C", value: "149°C", logic: "3選2" },
                         { reason: "二級出口高高溫度", tag: "TSHH-401 A/B/C", value: "149°C", logic: "3選2" },
@@ -223,6 +227,8 @@
                 "C-2001C": {
                     "hasSub": true,
                     "Process": [
+                        [cite_start]{ reason: "D-2010 高高液位", tag: "LSHH-403 A/B/C", value: "-", logic: "3選2 (Common) [cite: 11]" },
+                        [cite_start]{ reason: "允許開車之 9 顆 S.W 開關", tag: "-", value: "啟動後 60s 內有效", logic: "連鎖跳車 [cite: 12]" },
                         { reason: "一級進口低低壓力", tag: "PSLL-620 A/B/C", value: "14.8 kg/cm²", logic: "3選2" },
                         { reason: "各級出口高高溫度", tag: "TSHH-403~405", value: "149°C", logic: "3選2" },
                         { reason: "D-2012A 高高液位", tag: "LSHH-422", value: "-", logic: "" },
@@ -317,3 +323,246 @@
                     { reason: "滑油低低壓力", tag: "PSLL-802(A)/804(B)", value: "0.98/0.84 kg/cm²", logic: "3選2" },
                     { reason: "馬達線圈高溫度", tag: "TSHH-468/470", value: "160°C", logic: "B/D/F" }
                 ]},
+                "P-2003A/B": { "hasSub": false, "list": [
+                    { reason: "滑油低低壓力", tag: "PSLL-806(A)/808(B)", value: "0.77/0.7 kg/cm²", logic: "3選2" },
+                    { reason: "馬達線圈高溫度", tag: "TSHH-472/474", value: "160°C", logic: "" }
+                ]},
+                "P-2016A/B": { "hasSub": false, "list": [ { reason: "出口低壓力", tag: "PSL-711", value: "3.2 kg/cm²", logic: "Auto Start" } ]},
+                "P-2017A/B": { "hasSub": false, "list": [ { reason: "出口低壓力", tag: "PSL-709", value: "5 kg/cm²", logic: "Auto Start" } ]},
+                "P-2021A/B": { "hasSub": false, "list": [ { reason: "滑油低低壓力", tag: "PSLL-813B/815B", value: "0.7 kg/cm²", logic: "Delay 60s" } ]}
+            }
+        };
+
+        const appDiv = document.getElementById('display-area');
+        let currentZoom = 1.3;
+
+        // 首頁
+        function renderHome() {
+            let html = '<div style="flex-grow:1; display:flex; flex-direction:column; gap:15px;">';
+            html += `<button class="btn" onclick="renderSearchPage()">
+                        <div class="btn-icon">🔍</div>
+                        <div class="btn-text">搜尋資料 (Search)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+            html += `<button class="btn" onclick="renderMasterMap()">
+                        <div class="btn-icon">🕸️</div>
+                        <div class="btn-text">連鎖因果總表 (Master Map)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+            
+            const icons = { 'Compressor': '⚙️', 'Furnace': '🔥', 'Pump': '💧' };
+            Object.keys(db).forEach(category => {
+                html += `<button class="btn" onclick="renderCategory('${category}')">
+                            <div class="btn-icon">${icons[category]}</div>
+                            <div class="btn-text">${category}</div>
+                            <div class="arrow">➜</div>
+                         </button>`;
+            });
+            html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
+        // 設備分類列表
+        function renderCategory(category) {
+            let html = `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-highlight);">${category}</h2>`;
+            html += '<div style="display:flex; flex-direction:column; gap:15px;">';
+            Object.keys(db[category]).forEach(equipment => {
+                html += `<button class="btn" onclick="renderDetails('${category}', '${equipment}')">
+                            <div class="btn-text">${equipment}</div>
+                            <div class="arrow">➜</div>
+                         </button>`;
+            });
+            html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
+        // 設備詳情處理（判斷是否需要分流）
+        function renderDetails(category, equipment) {
+            const equipData = db[category][equipment];
+            
+            // 如果該設備有區分 Process/Mechanical 子選單
+            if (equipData.hasSub) {
+                renderSubSelection(category, equipment);
+            } else {
+                // 沒有子選單，直接顯示列表
+                renderTable(category, equipment, equipData.list, null);
+            }
+        }
+
+        // 渲染子選單 (製程 vs 機械)
+        function renderSubSelection(category, equipment) {
+            let html = `<button class="btn btn-back" onclick="renderCategory('${category}')"> ← 返回 ${category} </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-highlight);">${equipment} 跳車類型選擇</h2>`;
+            html += `<div style="display:flex; flex-direction:column; gap:20px; margin-top:20px;">`;
+            
+            html += `<button class="btn btn-process" onclick="renderSubTable('${category}', '${equipment}', 'Process')">
+                        <div class="btn-icon">🏭</div>
+                        <div class="btn-text">製程連鎖跳車 (Process Trip)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+                     
+            html += `<button class="btn btn-mech" onclick="renderSubTable('${category}', '${equipment}', 'Mechanical')">
+                        <div class="btn-icon">🛠️</div>
+                        <div class="btn-text">機械因素跳車 (Mechanical Trip)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+            
+            html += `</div>`;
+            appDiv.innerHTML = html;
+        }
+
+        // 渲染最終表格 (支援子類型)
+        function renderSubTable(category, equipment, type) {
+            const data = db[category][equipment][type];
+            renderTable(category, equipment, data, type);
+        }
+
+        function renderTable(category, equipment, dataList, subType) {
+            // 決定返回按鈕的目標
+            let backAction = "";
+            let title = equipment;
+            
+            if (subType) {
+                // 如果是子頁面，返回到選擇頁
+                backAction = `renderSubSelection('${category}', '${equipment}')`;
+                title += ` - ${subType === 'Process' ? '製程連鎖' : '機械因素'}`;
+            } else {
+                // 如果是單頁面，返回到設備列表
+                backAction = `renderCategory('${category}')`;
+            }
+
+            let html = `<button class="btn btn-back" onclick="${backAction}"> ← 返回上一頁 </button>`;
+            html += `<div class="detail-card">`;
+            html += `<h3 style="color:var(--text-highlight); border-bottom: 2px solid var(--accent-color); padding-bottom:15px; margin-top:0;">
+                        ${title}
+                     </h3>`;
+            html += `<table>
+                        <thead>
+                            <tr>
+                                <th width="45%">跳車因素</th>
+                                <th width="35%">位號 / 設定</th>
+                                <th width="20%">邏輯/備註</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            
+            dataList.forEach(item => {
+                html += `<tr>
+                            <td>${item.reason}</td>
+                            <td>
+                                <span class="tag-no">${item.tag}</span>
+                                <span class="value">${item.value}</span>
+                            </td>
+                            <td style="font-size:0.9rem; color:#718096;">${item.logic}</td>
+                         </tr>`;
+            });
+            html += `</tbody></table></div>`;
+            appDiv.innerHTML = html;
+        }
+
+        // Master Map (保持邏輯不變，修正版)
+        function renderMasterMap() {
+            currentZoom = 1.3;
+            let html = `<div class="map-container-wrapper">`;
+            html += `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
+            html += `<div class="map-controls">
+                        <button class="zoom-btn" onclick="zoomMap(0.2)">+</button>
+                        <button class="zoom-btn" onclick="zoomMap(-0.2)">-</button>
+                     </div>`;
+            html += `
+            <div class="mermaid-container">
+                <div class="mermaid" id="mermaid-graph" style="transform: scale(${currentZoom}); transform-origin: top center; transition: transform 0.3s; padding: 20px;">
+                    graph TD
+                        classDef root fill:#2d3748,stroke:#1a202c,stroke-width:3px,color:#fff;
+                        classDef main fill:#e53e3e,stroke:#c53030,stroke-width:3px,color:#fff,font-weight:bold;
+                        classDef sub fill:#ed8936,stroke:#c05621,stroke-width:2px,color:#fff;
+                        classDef final fill:#fc8181,stroke:#c53030,stroke-width:2px,color:#fff;
+
+                        MCC[MCC 480V 跳電]:::root -->|Delay 3s| C2002((C-2002 S/D)):::main
+                        C2002 -->|連鎖| F2001[F-2001 熄火]:::sub
+                        C2002 -->|連鎖| F2002[F-2002 熄火]:::sub
+                        C2002 -->|連鎖| APH[APH 跳車]:::sub
+                        C2002 -->|壓差邏輯| C2005[C-2005 跳車]:::sub
+                        C2005 -.->|XV-941未全開| C2005_Trip[C-2005 S/D]
+                        F2001 -->|連鎖| P2001[P-2001 A/B S/D]:::final
+                        
+                        linkStyle default stroke:#667eea,stroke-width:3px;
+                </div>
+            </div>`;
+            html += `</div>`;
+            appDiv.innerHTML = html;
+            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        }
+
+        function zoomMap(delta) {
+            currentZoom += delta;
+            if (currentZoom < 0.5) currentZoom = 0.5;
+            if (currentZoom > 3) currentZoom = 3;
+            document.getElementById('mermaid-graph').style.transform = `scale(${currentZoom})`;
+        }
+
+        // 搜尋功能
+        function renderSearchPage() {
+            let html = `<button class="btn btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
+            html += `<input type="text" id="searchInput" class="search-box" placeholder="輸入位號、設備名或數值..." onkeyup="performSearch()">`;
+            html += `<div id="searchResults"></div>`;
+            appDiv.innerHTML = html;
+            document.getElementById('searchInput').focus();
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toUpperCase().trim();
+            const resultsDiv = document.getElementById('searchResults');
+            if (query.length < 2) { resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">請輸入至少 2 個字元...</div>'; return; }
+
+            let matches = [];
+            Object.keys(db).forEach(cat => {
+                Object.keys(db[cat]).forEach(equip => {
+                    const obj = db[cat][equip];
+                    // 處理有子選單的情況
+                    if (obj.hasSub) {
+                        ['Process', 'Mechanical'].forEach(subType => {
+                            obj[subType].forEach(item => {
+                                if ((item.reason && item.reason.includes(query)) || (item.tag && item.tag.includes(query)) || (item.value && item.value.includes(query)) || equip.includes(query)) {
+                                    matches.push({ equip: equip, cat: cat, type: subType, item: item });
+                                }
+                            });
+                        });
+                    } else {
+                        // 處理無子選單的情況
+                        obj.list.forEach(item => {
+                            if ((item.reason && item.reason.includes(query)) || (item.tag && item.tag.includes(query)) || (item.value && item.value.includes(query)) || equip.includes(query)) {
+                                matches.push({ equip: equip, cat: cat, type: 'General', item: item });
+                            }
+                        });
+                    }
+                });
+            });
+
+            if (matches.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">查無資料</div>';
+            } else {
+                let html = '';
+                matches.slice(0, 50).forEach(m => { // 限制顯示數量優化效能
+                    let typeLabel = m.type === 'Process' ? '🏭 製程' : (m.type === 'Mechanical' ? '🛠️ 機械' : '一般');
+                    let clickAction = m.type === 'General' ? `renderDetails('${m.cat}', '${m.equip}')` : `renderSubTable('${m.cat}', '${m.equip}', '${m.type}')`;
+                    
+                    html += `<div class="search-result-item" onclick="${clickAction}">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-weight:bold; color:var(--text-highlight); font-size:1.1rem;">${m.equip}</span>
+                                    <span style="font-size:0.8rem; background:#cbd5e0; padding:2px 8px; border-radius:10px;">${typeLabel}</span>
+                                </div>
+                                <div style="margin-top:5px; color:#4a5568;">
+                                    ${m.item.reason} <span class="tag-no">${m.item.tag}</span>
+                                </div>
+                             </div>`;
+                });
+                resultsDiv.innerHTML = html;
+            }
+        }
+
+        renderHome();
+    </script>
+</body>
+</html>

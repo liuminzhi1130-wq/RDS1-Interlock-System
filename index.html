@@ -23,6 +23,8 @@
             --mech-color: #d69e2e;
             --proc-color: #3182ce;
             --auto-color: #38a169;
+            --high-p-color: #c53030; /* 高壓泵浦專用色 */
+            --gen-p-color: #3182ce;  /* 一般泵浦專用色 */
             --back-btn-bg: linear-gradient(145deg, #ffffff, #e6e6e6);
             --back-btn-text: #555;
         }
@@ -152,6 +154,8 @@
         
         .btn-process { border-left: 5px solid var(--proc-color); }
         .btn-mech { border-left: 5px solid var(--mech-color); }
+        .btn-high-p { border-left: 5px solid var(--high-p-color); }
+        .btn-gen-p { border-left: 5px solid var(--gen-p-color); }
 
         .search-box {
             width: 100%; padding: 15px; border: none; border-radius: 50px;
@@ -195,7 +199,7 @@
     </div>
 
     <script>
-        // 資料庫定義
+        // 資料庫定義 (Pump 保持扁平結構，透過程式邏輯分組)
         var db = {
             "Compressor": {
                 "C-2001A": {
@@ -329,6 +333,7 @@
                 ]}
             },
             "Pump": {
+                // P-2001A/B ~ P-2004A/B -> High Pressure Group
                 "P-2001A": { "hasSub": false, "list": [
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-797", "value": "1.12 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
                     { "reason": "滑油低低壓力", "tag": "PSLL-798 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
@@ -365,6 +370,7 @@
                 "P-2004B": { "hasSub": false, "list": [
                     { "reason": "滑油低壓力 (啟動後 Delay 10 sec)", "tag": "PSL-855", "value": "3 kg/cm²", "logic": "S/D" }
                 ]},
+                // P-2016 ~ P-2021 -> General Group
                 "P-2016A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-711", "value": "3.2 kg/cm²", "logic": "Auto Start" } ]},
                 "P-2017A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-709", "value": "5 kg/cm²", "logic": "Auto Start" } ]},
                 "P-2021A/B": { "hasSub": false, "list": [ { "reason": "滑油低低壓力", "tag": "PSLL-813B/815B", "value": "0.7 kg/cm²", "logic": "Delay 60s" } ]}
@@ -424,6 +430,12 @@
 
         // 設備分類列表
         function renderCategory(category) {
+            // PUMP 特殊處理：先顯示分類
+            if (category === 'Pump') {
+                renderPumpSplitMenu();
+                return;
+            }
+
             let html = `<button class="btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
             html += `<h2 style="text-align:center; color:var(--text-highlight);">${category}</h2>`;
             html += '<div style="display:flex; flex-direction:column; gap:15px;">';
@@ -437,17 +449,70 @@
             appDiv.innerHTML = html;
         }
 
+        // Pump 拆分選單
+        function renderPumpSplitMenu() {
+            let html = `<button class="btn-back" onclick="renderHome()"> ← 返回主選單 </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-highlight);">Pump 類型選擇</h2>`;
+            html += `<div style="display:flex; flex-direction:column; gap:20px; margin-top:20px;">`;
+            
+            // 高壓 Pump 按鈕
+            html += `<button class="btn btn-high-p" onclick="renderPumpList('High')">
+                        <div class="btn-icon">⚡</div>
+                        <div class="btn-text">高壓 PUMP (High Pressure)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+            
+            // 一般 Pump 按鈕
+            html += `<button class="btn btn-gen-p" onclick="renderPumpList('General')">
+                        <div class="btn-icon">💧</div>
+                        <div class="btn-text">一般 PUMP (General)</div>
+                        <div class="arrow">➜</div>
+                     </button>`;
+            
+            html += `</div>`;
+            appDiv.innerHTML = html;
+        }
+
+        // Pump 列表 (根據類型過濾)
+        function renderPumpList(type) {
+            let title = type === 'High' ? '高壓 PUMP 列表' : '一般 PUMP 列表';
+            let html = `<button class="btn-back" onclick="renderCategory('Pump')"> ← 返回 Pump 選單 </button>`;
+            html += `<h2 style="text-align:center; color:var(--text-highlight);">${title}</h2>`;
+            html += '<div style="display:flex; flex-direction:column; gap:15px;">';
+            
+            // 篩選邏輯
+            let targetPumps = [];
+            if (type === 'High') {
+                targetPumps = ["P-2001A", "P-2001B", "P-2002A", "P-2002B", "P-2003A", "P-2003B", "P-2004A", "P-2004B"];
+            } else {
+                targetPumps = ["P-2016A/B", "P-2017A/B", "P-2021A/B"];
+            }
+
+            targetPumps.forEach(function(equip) {
+                // 傳遞第三個參數 'PumpList' 告訴 renderDetails 返回時要回到這裡
+                html += `<button class="btn" onclick="renderDetails('Pump', '${equip}', '${type}')">
+                            <div class="btn-text">${equip}</div>
+                            <div class="arrow">➜</div>
+                         </button>`;
+            });
+
+            html += '</div>';
+            appDiv.innerHTML = html;
+        }
+
         // 設備詳情邏輯
-        function renderDetails(category, equipment) {
+        function renderDetails(category, equipment, pumpType) {
             const equipData = db[category][equipment];
+            
             if (equipData.hasSub) {
                 renderSubSelection(category, equipment);
             } else {
-                renderTable(category, equipment, equipData.list, null);
+                // 如果是 Pump，傳入 pumpType 以便正確返回
+                renderTable(category, equipment, equipData.list, null, pumpType);
             }
         }
 
-        // 子選單 (製程/機械)
+        // 子選單 (製程/機械) - 僅適用於 Compressor
         function renderSubSelection(category, equipment) {
             let html = `<button class="btn-back" onclick="renderCategory('${category}')"> ← 返回 ${category} </button>`;
             html += `<h2 style="text-align:center; color:var(--text-highlight);">${equipment} 跳車類型選擇</h2>`;
@@ -476,8 +541,20 @@
         }
 
         // 表格渲染核心
-        function renderTable(category, equipment, dataList, subType) {
-            let backAction = subType ? `renderSubSelection('${category}', '${equipment}')` : `renderCategory('${category}')`;
+        function renderTable(category, equipment, dataList, subType, pumpType) {
+            let backAction = "";
+            
+            if (category === 'Pump' && pumpType) {
+                // 泵浦特殊返回邏輯
+                backAction = `renderPumpList('${pumpType}')`;
+            } else if (subType) {
+                // 子選單返回邏輯
+                backAction = `renderSubSelection('${category}', '${equipment}')`;
+            } else {
+                // 一般返回邏輯
+                backAction = `renderCategory('${category}')`;
+            }
+
             let title = equipment + (subType ? ` - ${subType === 'Process' ? '製程連鎖' : '機械因素'}` : '');
 
             let html = `<button class="btn-back" onclick="${backAction}"> ← 返回上一頁 </button>`;
@@ -494,9 +571,7 @@
                         <tbody>`;
             
             dataList.forEach(function(item) {
-                // Auto Start 數值顯示為綠色
                 let valClass = item.isAuto ? 'value-auto' : 'value';
-                
                 html += `<tr>
                             <td>${item.reason}</td>
                             <td>
@@ -551,10 +626,20 @@
                 resultsDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">查無資料</div>';
             } else {
                 let html = '';
-                // 限制顯示前 50 筆結果
                 matches.slice(0, 50).forEach(function(m) { 
                     let typeLabel = m.type === 'Process' ? '🏭 製程' : (m.type === 'Mechanical' ? '🛠️ 機械' : '一般');
-                    let clickAction = m.type === 'General' ? `renderDetails('${m.cat}', '${m.equip}')` : `renderSubTable('${m.cat}', '${m.equip}', '${m.type}')`;
+                    
+                    // 處理點擊搜尋結果後的行為
+                    let clickAction = "";
+                    if (m.cat === 'Pump') {
+                        // 判斷 Pump 類型以決定返回路徑
+                        let pType = (["P-2001A", "P-2001B", "P-2002A", "P-2002B", "P-2003A", "P-2003B", "P-2004A", "P-2004B"].includes(m.equip)) ? 'High' : 'General';
+                        clickAction = `renderDetails('${m.cat}', '${m.equip}', '${pType}')`;
+                    } else if (m.type === 'General') {
+                        clickAction = `renderDetails('${m.cat}', '${m.equip}')`;
+                    } else {
+                        clickAction = `renderSubTable('${m.cat}', '${m.equip}', '${m.type}')`;
+                    }
                     
                     html += `<div class="search-result-item" onclick="${clickAction}">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">

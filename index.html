@@ -104,7 +104,6 @@
             transform: scale(0.98);
         }
 
-        /* 立體返回鍵 */
         .btn-back {
             margin-bottom: 15px;
             padding: 12px 20px;
@@ -140,13 +139,13 @@
             justify-content: center;
         }
         
-        /* SVG 圖示顏色 */
+        /* SVG 圖示基本設定 */
         .btn-icon svg {
-            width: 32px;
-            height: 32px;
-            stroke: var(--text-main);
+            width: 36px;
+            height: 36px;
             stroke-width: 2;
             fill: none;
+            transition: all 0.3s ease;
         }
 
         .btn-text { flex-grow: 1; }
@@ -331,33 +330,33 @@
             },
             "Pump": {
                 "P-2001A": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-798 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-797", "value": "1.12 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-798 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-464 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2001B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-800 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-799", "value": "0.84 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-800 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-466 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2002A": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-802 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-801", "value": "1.12 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-802 A/B/C", "value": "0.98 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-468 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2002B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-804 A/B/C", "value": "0.84 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-803", "value": "0.98 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-804 A/B/C", "value": "0.84 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-470 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2003A": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-806 A/B/C", "value": "0.77 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-805", "value": "0.91 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-806 A/B/C", "value": "0.77 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-472 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2003B": { "hasSub": false, "list": [
-                    { "reason": "滑油低低壓力", "tag": "PSLL-808 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
                     { "reason": "滑油低壓力 (Auto Start)", "tag": "PSL-807", "value": "0.84 kg/cm²", "logic": "啟動輔助泵", "isAuto": true },
+                    { "reason": "滑油低低壓力", "tag": "PSLL-808 A/B/C", "value": "0.7 kg/cm²", "logic": "3選2" },
                     { "reason": "馬達線圈高溫度", "tag": "TSHH-474 B/D/F", "value": "160°C", "logic": "跳車" }
                 ]},
                 "P-2016A/B": { "hasSub": false, "list": [ { "reason": "出口低壓力", "tag": "PSL-711", "value": "3.2 kg/cm²", "logic": "Auto Start" } ]},
@@ -384,26 +383,26 @@
                         <div class="arrow">➜</div>
                      </button>`;
             
-            // 設備分類按鈕圖示定義 (SVG)
+            // 設備分類按鈕圖示定義 (SVG) - 增加顏色屬性
             const catIcons = {
-                'Compressor': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                'Compressor': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#607d8b" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
                                 <path d="M12 6v6l4 2"/>
                                 <path d="M12 2v2M2 12h2M22 12h-2M12 22v-2"/>
                                 <circle cx="12" cy="12" r="3"/>
-                               </svg>`, // 渦輪/壓縮機意象
-                'Furnace': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                               </svg>`, 
+                'Furnace': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#dd6b20" fill="none" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/>
                                 <path d="M6 12h12M6 7h12M6 17h12"/>
                                 <path d="M10 2v-1c0-.6.4-1 1-1s1 .4 1 1v1"/> 
                                 <path d="M14 2c.5-1 1.5-1 2-1s1.5.5 1.5 1.5"/>
-                            </svg>`, // 工業煙囪
-                'Pump': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            </svg>`,
+                'Pump': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="#3182ce" fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="7"/>
                             <path d="M12 5v-3M5 12H2"/>
                             <path d="M19 12h3M12 19v3"/>
                             <path d="M12 9a3 3 0 0 1 3 3"/>
-                         </svg>` // 離心泵
+                         </svg>`
             };
 
             Object.keys(db).forEach(function(category) {
